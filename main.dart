@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 
 void main() {
@@ -29,6 +30,13 @@ class AuthPage extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            CircleAvatar(
+              radius: 100.0,
+              backgroundImage: AssetImage('images/Logo ParkEase.jpg'),
+            ),
+            SizedBox( height: 20.0,
+              width: 150,
+            ),
             ElevatedButton(
               onPressed: () {
                 Navigator.push(
@@ -202,8 +210,9 @@ class _SignUpPageState extends State<SignUpPage> {
     super.dispose();
   }
 }
+
 class VehicleSelectionPage extends StatefulWidget {
-  const VehicleSelectionPage({super.key});
+  const VehicleSelectionPage({Key? key}) : super(key: key);
 
   @override
   State<VehicleSelectionPage> createState() => _VehicleSelectionPageState();
@@ -213,57 +222,36 @@ class _VehicleSelectionPageState extends State<VehicleSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-        title: Text('Select Vehicle'),
-    ),
-    body: Center(
-        child: Row(
-        children: <Widget>[
-          Expanded(
-            child: TextButton(
-              onPressed:() {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => SearchAreaPage()),
-                );
-              },
-                child: Image.asset('images/vehicle1.png'),
-            ),
-          ),
-          Expanded(
-              child: TextButton(
-                  onPressed: () {
-                      Navigator.push(
-                             context,
-                             MaterialPageRoute(builder: (context) => SearchAreaPage()),
-                               );
-                           },
-                  child: Image.asset('images/vehicle2.png'),
-              ),
-          ),
-        ],
-      ),
-    ),
-    );
-  }
-}
-
-class Selectarea extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
       appBar: AppBar(
-        title: Text('Search Area'),
+        title: Text('Select Vehicle'),
       ),
       body: Center(
-        child: ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => SearchAreaPage()),
-            );
-          },
-          child: Text('Search Area'),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SearchAreaPage()),
+                  );
+                },
+                child: Image.asset('images/vehicle1.png', width: 150, height: 150),
+              ),
+            ),
+            Expanded(
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => SearchAreaPage()),
+                  );
+                },
+                child: Image.asset('images/vehicle2.png', width: 150, height: 150),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -277,20 +265,23 @@ class SearchAreaPage extends StatefulWidget {
 
 class _SearchAreaPageState extends State<SearchAreaPage> {
   final _searchController = TextEditingController();
+
   bool _searchPerformed = false;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Search Area'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
+        appBar: AppBar(
+          title: Text('Search Area'),
+        ),
+        body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+              TextField(
               controller: _searchController,
               decoration: InputDecoration(
                 labelText: 'Enter area',
@@ -299,157 +290,289 @@ class _SearchAreaPageState extends State<SearchAreaPage> {
             ),
             SizedBox(height: 16.0),
             ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  _searchPerformed = true;
-                });
-              },
-              child: Text('Search'),
+              onPressed: () => _selectDate(context),
+              child: Text(_selectedDate == null ? 'Select Date' : 'Selected Date: ${_selectedDate!.toLocal()}'.split(' ')[0]),
             ),
             SizedBox(height: 16.0),
-            _searchPerformed ? Expanded(child: _buildPlaceList()) : Container(),
-          ],
+            ElevatedButton(
+            onPressed: () => _selectTime(context),
+    child: Text(_selectedTime == null ? 'Select Time' : 'Selected Time: ${_selectedTime
+    !.format(context)}'),
+            ),
+                SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _searchPerformed = true;
+                    });
+                  },
+                  child: Text('Search'),
+                ),
+                SizedBox(height: 16.0),
+                _searchPerformed ? Expanded(child: _buildPlaceList()) : Container(),
+              ],
+            ),
         ),
-      ),
     );
+  }
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (picked != null && picked != _selectedDate)
+      setState(() {
+        _selectedDate = picked;
+      });
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? TimeOfDay.now(),
+    );
+    if (picked != null && picked != _selectedTime)
+      setState(() {
+        _selectedTime = picked;
+      });
   }
 
   Widget _buildPlaceList() {
     List<Map<String, dynamic>> places = [
       {
         'name': 'Reliance Digital Mart',
-        'slots': [
-          {'number': 1, 'occupied': false},
-          {'number': 2, 'occupied': true},
-          {'number': 3, 'occupied': false},
-          {'number': 4, 'occupied': false},
-          {'number': 5, 'occupied': false},
-          {'number': 6, 'occupied': true},
-          {'number': 7, 'occupied': true},
-          {'number': 8, 'occupied': false},
-          {'number': 9, 'occupied': true},
-          {'number': 10, 'occupied': true},
-          {'number': 11, 'occupied': true},
-          {'number': 12, 'occupied': false},
-        ],
+        'slots': _generateSlots(_selectedDate, _selectedTime)
       },
       {
         'name': 'Dhuniwala Math Chowk',
-        'slots': [
-          {'number': 13, 'occupied': false},
-          {'number': 14, 'occupied': false},
-          {'number': 15, 'occupied': true},
-          {'number': 16, 'occupied': true},
-          {'number': 17, 'occupied': false},
-          {'number': 18, 'occupied': true},
-          {'number': 19, 'occupied': true},
-          {'number': 20, 'occupied': true},
-          {'number': 21, 'occupied': false},
-          {'number': 22, 'occupied': true},
-          {'number': 23, 'occupied': true},
-          {'number': 24, 'occupied': false},
-          {'number': 25, 'occupied': true},
-        ],
+        'slots': _generateSlots(_selectedDate, _selectedTime)
       },
       {
-        'name': 'Aarti Chowk',
-        'slots': [
-          {'number': 26, 'occupied': true},
-          {'number': 27, 'occupied': false},
-          {'number': 28, 'occupied': true},
-          {'number': 29, 'occupied': false},
-          {'number': 30, 'occupied': true},
-          {'number': 31, 'occupied': false},
-          {'number': 32, 'occupied': true},
-          {'number': 33, 'occupied': true},
-          {'number': 34, 'occupied': false},
-          {'number': 35, 'occupied': true},
-        ],
+        'name': 'Arvi Naka',
+        'slots': _generateSlots(_selectedDate, _selectedTime)
       },
+      {
+        'name': 'Varco Pinnacle',
+        'slots': _generateSlots(_selectedDate, _selectedTime)
+      },
+    {
+    'name': 'Shivaji Chowk',
+    'slots': _generateSlots(_selectedDate, _selectedTime)
+    },
     ];
 
     return ListView.builder(
       itemCount: places.length,
       itemBuilder: (context, index) {
-        return Card(
-          margin: EdgeInsets.symmetric(vertical: 8.0),
-          child: ListTile(
-            title: Text(places[index]['name']),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => SlotsPage(places[index]['name'], places[index]['slots']),
+        return ListTile(
+          title: Text(places[index]['name']),
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => SlotSelectionPage(
+                  slots: places[index]['slots'],
+                  placeName: places[index]['name'],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
       },
     );
   }
 
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  List<Map<String, dynamic>> _generateSlots(DateTime? date, TimeOfDay? time) {
+    List<Map<String, dynamic>> slots = [];
+    bool isWeekend = date != null && (date.weekday == DateTime.saturday || date.weekday == DateTime.sunday);
+    bool isPeakTime = time != null && (time.hour >= 17 && time.hour < 20);
+
+    int availableSlots = isWeekend || isPeakTime ? 5 : 10;
+    double price = isWeekend || isPeakTime ? 100.0 : 40.0;
+
+    for (int i = 1; i <= availableSlots; i++) {
+      slots.add({
+        'slot': 'Slot $i',
+        'price': price,
+        'status': i % 2 == 0 ? 'occupied' : 'vacant',
+      });
+    }
+
+    return slots;
   }
 }
 
-class SlotsPage extends StatefulWidget {
-  final String placeName;
+class SlotSelectionPage extends StatefulWidget {
   final List<Map<String, dynamic>> slots;
+  final String placeName;
 
-  SlotsPage(this.placeName, this.slots);
+  SlotSelectionPage({required this.slots, required this.placeName});
 
   @override
-  _SlotsPageState createState() => _SlotsPageState();
+  _SlotSelectionPageState createState() => _SlotSelectionPageState();
 }
 
-class _SlotsPageState extends State<SlotsPage> {
+class _SlotSelectionPageState extends State<SlotSelectionPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('${widget.placeName} Slots'),
+        title: Text('Select Slot for ${widget.placeName}'),
       ),
       body: ListView.builder(
         itemCount: widget.slots.length,
         itemBuilder: (context, index) {
-          return Card(
-            margin: EdgeInsets.symmetric(vertical: 8.0),
-            child: ListTile(
-              title: Text('Slot ${widget.slots[index]['number']}'),
-              subtitle: Text(widget.slots[index]['occupied'] ? 'Occupied' : 'Vacant'),
-              trailing: widget.slots[index]['occupied']
-                  ? Icon(Icons.close, color: Colors.red)
-                  : Icon(Icons.check, color: Colors.green),
-              onTap: widget.slots[index]['occupied']
-                  ? null
-                  : () {
-                setState(() {
-                  widget.slots[index]['occupied'] = true;
-                });
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => QRCodePage(widget.placeName, widget.slots[index]['number']),
-                  ),
-                );
-              },
+          return ListTile(
+            title: Text(widget.slots[index]['slot']),
+            subtitle: Text('Price: ₹${widget.slots[index]['price']}'),
+            trailing: Text(
+              widget.slots[index]['status'].toUpperCase(),
+              style: TextStyle(
+                color: widget.slots[index]['status'] == 'occupied' ? Colors.red : Colors.green,
+                fontWeight: FontWeight.bold,
+              ),
             ),
+            onTap: () {
+              if (widget.slots[index]['status'] == 'vacant') {
+                _bookSlot(index);
+              } else {
+                _navigateToQRPage(widget.slots[index]['slot'], widget.slots[index]['price'], widget.placeName);
+              }
+            },
           );
         },
       ),
     );
   }
+
+  void _bookSlot(int index) {
+    setState(() {
+      widget.slots[index]['status'] = 'occupied';
+    });
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PaymentPage(
+          slot: widget.slots[index]['slot'],
+          price: widget.slots[index]['price'],
+          placeName: widget.placeName,
+        ),
+      ),
+    );
+  }
+
+  void _navigateToQRPage(String slot, double price, String placeName) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => QrCodePage(
+          data: 'Slot: $slot, Place: $placeName, Price: ₹${price.toString()}',
+          onVacateSlot: () {
+            setState(() {
+              widget.slots.firstWhere((element) => element['slot'] == slot)['status'] = 'vacant';
+            });
+          },
+        ),
+      ),
+    );
+  }
 }
 
-class QRCodePage extends StatelessWidget {
+class PaymentPage extends StatelessWidget {
+  final String slot;
+  final double price;
   final String placeName;
-  final int slotNumber;
 
-  QRCodePage(this.placeName, this.slotNumber);
+  PaymentPage({required this.slot, required this.price, required this.placeName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Payment'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Slot: $slot', style: TextStyle(fontSize: 20)),
+            Text('Place: $placeName', style: TextStyle(fontSize: 20)),
+            Text('Price: ₹${price.toString()}', style: TextStyle(fontSize: 20)),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ConfirmationPage(slot: slot, price: price, placeName: placeName),
+                  ),
+                );
+              },
+              child: Text('Pay'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ConfirmationPage extends StatelessWidget {
+  final String slot;
+  final double price;
+  final String placeName;
+
+  ConfirmationPage({required this.slot, required this.price, required this.placeName});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+          title: Text('Confirmation'),
+        ),
+        body: Padding(
+        padding: const EdgeInsets.all(16.0),
+    child: Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+    Text('Slot: $slot', style: TextStyle(fontSize: 20)),
+    Text('Place: $placeName', style: TextStyle(fontSize: 20)),
+    Text('Price: ₹${price.toString()}', style: TextStyle(fontSize: 20)),
+    SizedBox(height: 20),
+    ElevatedButton(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => QrCodePage(data: 'Slot: $slot, Place: $placeName, Price: ₹${price.toString()}'),
+            ),
+          );
+        },
+        child: Text('Confirm'),
+      ),
+      SizedBox(height: 20),
+      ElevatedButton(
+        onPressed: () {
+          Navigator.popUntil(context, ModalRoute.withName('/'));
+        },
+        child: Text('Cancel'),
+      ),
+    ],
+    ),
+        ),
+    );
+  }
+}
+
+class QrCodePage extends StatelessWidget {
+  final String data;
+  final VoidCallback? onVacateSlot;
+
+  QrCodePage({required this.data, this.onVacateSlot});
 
   @override
   Widget build(BuildContext context) {
@@ -458,8 +581,57 @@ class QRCodePage extends StatelessWidget {
         title: Text('QR Code'),
       ),
       body: Center(
-        child: Image.asset('images/qr image.jpeg'),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            QrImageView(
+              data: data,
+              version: QrVersions.auto,
+              size: 200.0,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                if (onVacateSlot != null) {
+                  _showConfirmationDialog(context);
+                }
+              },
+              child: Text('Vacate Slot'),
+            ),
+          ],
+        ),
       ),
+    );
+  }
+
+  void _showConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Vacate Slot'),
+          content: Text('Are you sure you want to vacate this slot?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('No'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                onVacateSlot!();
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                  content: Text('Slot vacated successfully!'),
+                  duration: Duration(seconds: 2),
+                ));
+              },
+              child: Text('Yes'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
